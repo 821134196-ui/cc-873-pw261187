@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>配置中心发布器</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header>
+  <h1>配置中心 · 发布器</h1>
+  <div class="header-actions">
+    <span id="online-total" class="badge">在线客户端 0</span>
+    <button id="btn-new" class="primary">发起改动</button>
+  </div>
+</header>
+
+<main>
+  <section class="grid">
+    <div class="card span2">
+      <h2>应用生效视图 <small>（覆盖优先，未覆盖穿透全局层）</small></h2>
+      <div id="views"></div>
+    </div>
+    <div class="card">
+      <h2>模拟客户端 <small>（SSE 订阅，观察精准刷新）</small></h2>
+      <div id="clients"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>发布 / 回滚历史</h2>
+    <div class="toolbar">
+      <button id="btn-rollback" disabled>批量回滚所选发布</button>
+      <span id="rollback-hint" class="muted"></span>
+    </div>
+    <table id="events-table">
+      <thead><tr>
+        <th>选择</th><th>时间</th><th>类型</th><th>改动</th>
+        <th>受影响应用 / 键</th><th>刷新的客户端</th><th>状态</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<!-- 键来源抽屉 -->
+<dialog id="source-dialog">
+  <article>
+    <h2>键来源：<span id="src-key"></span></h2>
+    <p class="muted">应用：<b id="src-app"></b></p>
+    <div id="src-body"></div>
+    <footer><button id="src-close">关闭</button></footer>
+  </article>
+</dialog>
+
+<!-- 分步发布向导 -->
+<dialog id="wizard">
+  <article class="wizard">
+    <div class="steps">
+      <span class="step" data-step="1">1 编辑改动</span>
+      <span class="step" data-step="2">2 影响分析</span>
+      <span class="step" data-step="3">3 确认发布</span>
+      <span class="step" data-step="4">4 完成</span>
+    </div>
+
+    <section class="pane" data-pane="1">
+      <h2>编辑改动</h2>
+      <div class="form-row">
+        <label>层级
+          <select id="f-scope">
+            <option value="global">全局共享层</option>
+            <option value="override">应用覆盖层</option>
+          </select>
+        </label>
+        <label id="f-app-wrap" class="hidden">应用
+          <select id="f-app"></select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>键名 <input id="f-key" list="key-list" placeholder="如 db.pool.size"></label>
+        <datalist id="key-list"></datalist>
+        <label>新版本号 <input id="f-version" placeholder="如 2.0.0"></label>
+      </div>
+      <div class="form-row">
+        <label class="grow">值 <input id="f-value" placeholder="配置值"></label>
+      </div>
+      <div class="form-row">
+        <label class="grow">依赖（逗号分隔，留空表示无依赖）
+          <input id="f-deps" placeholder="如 cache.ttl, db.pool.size">
+        </label>
+      </div>
+      <div class="form-row">
+        <label class="grow">备注 <input id="f-note"></label>
+      </div>
+      <h3>本次改动清单 <button id="btn-add-change" class="small">加入清单</button></h3>
+      <table id="change-list"><thead><tr>
+        <th>层级</th><th>应用</th><th>键</th><th>版本</th><th>值</th><th>依赖</th><th></th>
+      </tr></thead><tbody></tbody></table>
+      <footer>
+        <button data-goto="2" class="primary" id="btn-analyze">下一步：影响分析</button>
+      </footer>
+    </section>
+
+    <section class="pane hidden" data-pane="2">
+      <h2>影响分析（dry-run，未写入）</h2>
+      <div id="plan-body"></div>
+      <footer>
+        <button data-goto="1">上一步</button>
+        <button data-goto="3" class="primary" id="btn-to-confirm" disabled>下一步：确认发布</button>
+      </footer>
+    </section>
+
+    <section class="pane hidden" data-pane="3">
+      <h2>确认发布</h2>
+      <div id="confirm-body"></div>
+      <footer>
+        <button data-goto="2">上一步</button>
+        <button id="btn-commit" class="danger primary">确认发布</button>
+      </footer>
+    </section>
+
+    <section class="pane hidden" data-pane="4">
+      <h2>发布结果</h2>
+      <div id="result-body"></div>
+      <footer><button id="btn-done" class="primary">完成</button></footer>
+    </section>
+  </article>
+</dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
